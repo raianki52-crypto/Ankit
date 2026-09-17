@@ -1844,53 +1844,8 @@
     initFirebaseApp();
   </script>
 </body>
-              </html>
-
-              <script>
-  // Direct Download function
-  function openDownloadLink() {
-    window.location.href = "https://appsgeyser.io/20181933/Battlex13";
-  }
-
-  // 1. Naya Floating Button banana
-  const directBtn = document.createElement('div');
-  directBtn.innerHTML = '📥 Download APK';
-  directBtn.style.cssText = 'position:fixed;bottom:25px;right:20px;z-index:2147483647;background:#28a745;color:#ffffff;padding:14px 22px;font-size:16px;font-weight:bold;border-radius:50px;box-shadow:0 4px 15px rgba(0,0,0,0.6);cursor:pointer;display:block;';
-  directBtn.onclick = openDownloadLink;
-  document.body.appendChild(directBtn);
-
-  // 2. Screen par bane kisi bhi purane download icon ko activate karna
-  document.querySelectorAll('a, button, div, span, img').forEach(el => {
-    const text = (el.innerText || el.getAttribute('alt') || el.className || '').toLowerCase();
-    if (text.includes('download') || text.includes('apk') || text.includes('install')) {
-      el.style.cursor = 'pointer';
-      el.onclick = openDownloadLink;
-    }
-  });
-</script>
-
-<script>
-  function downloadBattlex() {
-    window.location.href = "https://appsgeyser.io/20182297/Battlex13";
-  }
-
-  // Floating Download Button
-  const btn = document.createElement('button');
-  btn.innerText = '📥 Download APK';
-  btn.style.cssText = 'position:fixed;bottom:25px;right:20px;z-index:2147483647;background:#28a745;color:#fff;padding:14px 22px;font-size:16px;font-weight:bold;border:none;border-radius:50px;box-shadow:0 4px 15px rgba(0,0,0,0.6);cursor:pointer;';
-  btn.onclick = downloadBattlex;
-  document.body.appendChild(btn);
-
-  // Screen ke baki sabhi download buttons ko naye link se connect karna
-  document.querySelectorAll('a, button, div, span, img').forEach(el => {
-    const txt = (el.innerText || el.getAttribute('alt') || el.className || '').toLowerCase();
-    if (txt.includes('download') || txt.includes('apk')) {
-      el.style.cursor = 'pointer';
-      el.onclick = downloadBattlex;
-    }
-  });
-</script>
-<script>
+  </html>
+  <script>
   function downloadBattlex(e) {
     if (e) {
       e.preventDefault();
