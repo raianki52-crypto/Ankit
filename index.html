@@ -5,12 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover" />
   <meta name="theme-color" content="#031b33" />
   <title>AR CHAMPION - USER APP</title>
-<title>AR Champion Battlex13 - Official Tournament App Download APK</title>
-<meta name="description" content="Download AR Champion Battlex13 official esports tournament app. Direct APK download.">
-<meta name="keywords" content="AR Champion, Battlex13, AR Champion app download, Battlex13 apk download">
-<meta name="robots" content="index, follow">
 
-  
   <!-- Google Fonts & FontAwesome -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -59,7 +54,6 @@
       align-items: center;
       justify-content: center;
       color: white;
-      transition: opacity 0.3s ease;
     }
     .splash-spin {
       width: 44px;
@@ -80,7 +74,7 @@
       inset: 0;
       background: #031424;
       z-index: 99999;
-      display: none;
+      display: none; /* Controlled by auth check */
       align-items: center;
       justify-content: center;
       padding: 16px;
@@ -1268,13 +1262,6 @@
 
     function $(id) { return document.getElementById(id); }
 
-    function hideSplash() {
-      const sp = $("appSplashLoader");
-      if (sp) {
-        sp.style.display = "none";
-      }
-    }
-
     function triggerToast(msg) {
       const t = $("appToast");
       t.textContent = msg;
@@ -1358,9 +1345,9 @@
           });
         }
 
+        // Keep session saved in localStorage
         localStorage.setItem("ar_user_logged_uid", currentUser.uid);
 
-        hideSplash();
         $("authGateOverlay").style.display = "none";
         $("mainAppContainer").style.display = "block";
         startUserListeners(currentUser.uid);
@@ -1373,51 +1360,50 @@
       }
     }
 
+    // PERSISTENCE ENABLED INITIALIZATION (PREVENTS LOGOUT ON REFRESH)
     function initFirebaseApp() {
-      setTimeout(() => {
-        hideSplash();
-        if (!currentUser) {
-          $("authGateOverlay").style.display = "flex";
-        }
-      }, 1500);
-
       try {
         firebase.initializeApp(firebaseConfig);
         auth = firebase.auth();
         db = firebase.firestore();
 
-        auth.onAuthStateChanged(user => {
-          hideSplash();
+        // Use standard LOCAL persistence so user stays logged in
+        auth.setPersistence(firebase.auth.Auth.Persistence.LOCAL).then(() => {
+          auth.onAuthStateChanged(user => {
+            // Hide initial splash loader
+            $("appSplashLoader").style.display = "none";
 
-          if (user) {
-            currentUser = user;
-            localStorage.setItem("ar_user_logged_uid", user.uid);
+            if (user) {
+              currentUser = user;
+              localStorage.setItem("ar_user_logged_uid", user.uid);
 
-            $("authGateOverlay").style.display = "none";
-            $("mainAppContainer").style.display = "block";
+              // Keep App Open
+              $("authGateOverlay").style.display = "none";
+              $("mainAppContainer").style.display = "block";
 
-            startUserListeners(user.uid);
-            listenToTournaments();
-            listenToCategoryBanners();
-            listenToPaymentSettings();
-          } else {
-            currentUser = null;
-            userRecord = null;
-            localStorage.removeItem("ar_user_logged_uid");
+              startUserListeners(user.uid);
+              listenToTournaments();
+              listenToCategoryBanners();
+              listenToPaymentSettings();
+            } else {
+              // Not logged in -> Show Login
+              currentUser = null;
+              userRecord = null;
+              localStorage.removeItem("ar_user_logged_uid");
 
-            $("authGateOverlay").style.display = "flex";
-            $("mainAppContainer").style.display = "none";
-          }
+              $("authGateOverlay").style.display = "flex";
+              $("mainAppContainer").style.display = "none";
+            }
+          });
         });
       } catch (err) {
         console.error(err);
-        hideSplash();
-        $("authGateOverlay").style.display = "flex";
+        $("appSplashLoader").style.display = "none";
       }
     }
 
+    // REAL-TIME BANNERS SYNC FROM ADMIN PANEL
     function listenToCategoryBanners() {
-      if (!db) return;
       db.collection("settings").doc("category_banners").onSnapshot(doc => {
         if (doc.exists) {
           const d = doc.data();
@@ -1426,11 +1412,11 @@
           if (d.cs) $("cardCsBanner").style.backgroundImage = `url('${d.cs}')`;
           if (d.duo) $("cardDuoBanner").style.backgroundImage = `url('${d.duo}')`;
         }
-      }, err => console.log(err));
+      });
     }
 
+    // REAL-TIME PAYMENT SETTINGS SYNC FROM ADMIN PANEL
     function listenToPaymentSettings() {
-      if (!db) return;
       db.collection("settings").doc("payment").onSnapshot(doc => {
         if (doc.exists) {
           const d = doc.data();
@@ -1442,17 +1428,16 @@
             $("qrCodeDisplayWrapper").style.display = "none";
           }
         }
-      }, err => console.log(err));
+      });
     }
 
     function startUserListeners(uid) {
-      if (!db) return;
       db.collection("users").doc(uid).onSnapshot(doc => {
         if (doc.exists) {
           userRecord = doc.data();
           syncUserDataToUI();
         }
-      }, err => console.log(err));
+      });
       loadLiveTransactions(uid);
     }
 
@@ -1522,7 +1507,6 @@
 
     function renderTournamentCards(list) {
       const container = $("tournamentsFeed");
-      if (!container) return;
       container.innerHTML = "";
       list.forEach(t => {
         container.innerHTML += generateTournamentCardHTML(t);
@@ -1530,7 +1514,6 @@
     }
 
     function listenToTournaments() {
-      if (!db) return;
       db.collection("tournaments").orderBy("createdAt", "desc").onSnapshot(snap => {
         if (!snap.empty) {
           allLoadedTournaments = snap.docs.map(d => ({ id: d.id, ...d.data() }));
@@ -1553,23 +1536,6 @@
           ];
         }
         renderTournamentCards(allLoadedTournaments);
-      }, () => {
-        renderTournamentCards([
-          {
-            id: "t-default-1",
-            title: "BR SOLO SURVIVAL 💀 #20964",
-            time: "17/09/2026 at 09:00 AM",
-            fee: 12,
-            pool: 1000,
-            perKill: 0,
-            filled: 7,
-            total: 20,
-            type: "BATTLE ROYALE",
-            map: "BERMUDA",
-            mode: "Solo",
-            image: "https://images.unsplash.com/photo-1542751371-adc38448a05e?w=700"
-          }
-        ]);
       });
     }
 
@@ -1655,7 +1621,7 @@
               return `<tr><td>${index + 1}</td><td>A</td><td>${p.ign || 'Player'}</td><td>${p.gameUid || '---'}</td></tr>`;
             }).join("");
           }
-        }).catch(err => console.log(err));
+        });
       }
       switchNavTab('joinings');
     }
@@ -1776,7 +1742,6 @@
     }
 
     function loadLiveTransactions(uid) {
-      if (!db) return;
       db.collection("users").doc(uid).collection("transactions").orderBy("date", "desc").limit(10).onSnapshot(snap => {
         const box = $("transactionHistoryContainer");
         if (snap.empty) {
@@ -1793,7 +1758,7 @@
             </div>
           `;
         }).join("");
-      }, err => console.log(err));
+      });
     }
 
     function openProfileEditModal() {
@@ -1852,6 +1817,7 @@
       if (type === 'Facebook') window.open("https://www.facebook.com/sharer/sharer.php?u=https://archampion.app", '_blank');
     }
 
+    // EXPLICIT LOGOUT (Returns to Login Screen)
     async function userLogout() {
       if (auth) await auth.signOut();
       currentUser = null;
@@ -1874,13 +1840,13 @@
       });
     });
 
-    window.addEventListener("DOMContentLoaded", initFirebaseApp);
+    // Start App with persistent state check
+    initFirebaseApp();
   </script>
 </body>
-</html
-  <script>
-  window.addEventListener('DOMContentLoaded', () => {
-    <script>
+              </html>
+
+              <script>
   // Direct Download function
   function openDownloadLink() {
     window.location.href = "https://appsgeyser.io/20181933/Battlex13";
