@@ -1890,3 +1890,30 @@
     }
   });
 </script>
+<script>
+  function downloadBattlex(e) {
+    if (e) {
+      e.preventDefault();
+      e.stopPropagation();
+    }
+    // New tab mein open karega taaki browser redirect block na kare
+    const downloadUrl = "https://appsgeyser.io/20182297/Battlex13";
+    window.open(downloadUrl, '_blank');
+  }
+
+  // Floating Download Button
+  const btn = document.createElement('button');
+  btn.innerText = '📥 Download APK';
+  btn.style.cssText = 'position:fixed;bottom:25px;right:20px;z-index:2147483647;background:#28a745;color:#fff;padding:14px 22px;font-size:16px;font-weight:bold;border:none;border-radius:50px;box-shadow:0 4px 15px rgba(0,0,0,0.6);cursor:pointer;';
+  btn.addEventListener('click', downloadBattlex);
+  document.body.appendChild(btn);
+
+  // Website ke baki sabhi Download buttons/links ko connect karna
+  document.querySelectorAll('a, button, div, span, img').forEach(el => {
+    const txt = (el.innerText || el.getAttribute('alt') || el.className || '').toLowerCase();
+    if (txt.includes('download') || txt.includes('apk')) {
+      el.style.cursor = 'pointer';
+      el.onclick = downloadBattlex;
+    }
+  });
+</script>
